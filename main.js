@@ -14,6 +14,7 @@ const player = {
 };
 const gameSettings = {
     movementSpeed: 2,
+    fallingSpeed: 0.5,
     wizardHight: 100,
     wizardWight: 82,
 };
@@ -26,11 +27,20 @@ function startGame(e) {
     wizard.style.top = player.y + 'px';
     wizard.style.left = player.x + 'px';
     gameAreaElement.appendChild(wizard);
+
+    let bug = document.createElement('div');
+    bug.classList.add('bug');
     window.requestAnimationFrame(game);
 }
 
 function game() {
     let wizard = document.querySelector('.wizard');
+
+    let isInAir = (player.y + gameSettings.wizardHight) <= gameAreaElement.offsetHeight;
+
+    if (isInAir) {
+        player.y += gameSettings.fallingSpeed;
+    }
 
     if (keys.ArrowUp) {
         player.y = Math.max(player.y - gameSettings.movementSpeed, 0);
