@@ -2,6 +2,7 @@ const gameStartElement = document.querySelector('.game-start');
 const gameAreaElement = document.querySelector('.game-area');
 const gameOverElement = document.querySelector('.game-over');
 const gameScoreElement = document.querySelector('.game-score');
+const gamePointsElement = document.querySelector('.points');
 
 gameStartElement.addEventListener('click', startGame);
 document.addEventListener('keydown', onKeyDown);
@@ -18,6 +19,9 @@ const gameSettings = {
     wizardHight: 100,
     wizardWight: 82,
 };
+const scene = {
+    score: 0
+}
 
 function startGame(e) {
     gameStartElement.classList.add('hide');
@@ -35,6 +39,7 @@ function startGame(e) {
 
 function game() {
     let wizard = document.querySelector('.wizard');
+    scene.score++;
 
     let isInAir = (player.y + gameSettings.wizardHight) <= gameAreaElement.offsetHeight;
 
@@ -61,6 +66,8 @@ function game() {
     wizard.style.top = player.y + 'px';
     wizard.style.left = player.x + 'px';
 
+    gamePointsElement.textContent = scene.score;
+    
     window.requestAnimationFrame(game);
 }
 
