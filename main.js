@@ -15,11 +15,13 @@ const player = {
     wizardHight: 100,
     wizardWight: 82,
     fireBallWight: 25,
+    lastFireBallShot: 0
 };
 const gameSettings = {
     movementSpeed: 2,
     fallingSpeed: 0.5,
     fireBallSpeed: 3,
+    fireBallInterval: 1000
 };
 const scene = {
     score: 0
@@ -39,12 +41,14 @@ function startGame(e) {
     window.requestAnimationFrame(game);
 }
 
-function game() {
+function game(timestamp) {
     let wizard = document.querySelector('.wizard');
+
     let fireBalls = document.querySelectorAll('.fire-ball');
     fireBalls.forEach(fireBall => {
         let fireBallX = parseInt(fireBall.style.left);
         fireBall.style.left = (fireBallX + gameSettings.fireBallSpeed) + 'px';
+
         if (fireBallX + fireBall.offsetWidth >= gameAreaElement.offsetWidth) {
             fireBall.remove();
         }
@@ -74,7 +78,10 @@ function game() {
         player.x = Math.min(player.x + gameSettings.movementSpeed, (gameAreaElement.offsetWidth - player.wizardWight));
     }
 
-    if (keys.Space && player.x < gameAreaElement.offsetWidth - player.wizardWight - player.fireBallWight) {
+    if (keys.Space && player.x < gameAreaElement.offsetWidth - player.wizardWight - player.fireBallWight &&
+        timestamp - player.lastFireBallShot > gameSettings.fireBallInterval) {
+
+        player.lastFireBallShot = timestamp
         wizard.classList.add('wizard-fire');
         shootFireBall(player);
     } else {
@@ -91,7 +98,7 @@ function game() {
     window.requestAnimationFrame(game);
 }
 
-function shootFireBall(player){
+function shootFireBall(player) {
     let fireBall = document.createElement('div');
     fireBall.classList.add('fire-ball');
 
