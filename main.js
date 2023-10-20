@@ -64,6 +64,16 @@ function game(timestamp) {
         scene.lastBugSpawned = timestamp
     }
 
+    let bugs = document.querySelectorAll('.bug');
+    bugs.forEach(bug => {
+        bug.x -= gameSettings.movementSpeed;
+        bug.style.left = bug.x + 'px';
+
+        if (bug.x + bug.offsetWidth <= 0) {
+            bug.remove();
+        }
+    });
+
     if (timestamp - scene.lastCloudSpawned >= gameSettings.cloudSpawnInterval + 20000 * Math.random()) {
         cloudSpawn();
         scene.lastCloudSpawned = timestamp;
