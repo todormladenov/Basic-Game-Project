@@ -67,13 +67,6 @@ function game(timestamp) {
         }
     });
 
-    // Detect collision wizard with bugs
-    bugs.forEach(bug => {
-        if (detectCollision(wizard, bug)) {
-            gameOver();
-        }
-    });
-
     // Spawn clouds
     if (timestamp - scene.lastCloudSpawned >= gameSettings.cloudSpawnInterval + 20000 * Math.random()) {
         cloudSpawn();
@@ -93,7 +86,7 @@ function game(timestamp) {
 
     // Add movement
     if (keys.ArrowUp) {
-        player.y = Math.max(player.y - gameSettings.movementSpeed * 1.3, 0);
+        player.y = Math.max(player.y - gameSettings.movementSpeed * 2, 0);
     }
 
     if (keys.ArrowDown) {
@@ -139,6 +132,20 @@ function game(timestamp) {
         if (fireBallX + fireBall.offsetWidth >= gameAreaElement.offsetWidth) {
             fireBall.remove();
         }
+    });
+
+    // Detect collision
+    bugs.forEach(bug => {
+        if (detectCollision(wizard, bug)) {
+            gameOver();
+        }
+
+        fireBalls.forEach(fireBall => {
+            if (detectCollision(fireBall, bug)) {
+                bug.remove();
+                fireBall.remove();
+            }
+        });
     });
 
     scene.score++;
