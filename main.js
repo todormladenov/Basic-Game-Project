@@ -32,6 +32,7 @@ const scene = {
     lastBugSpawned: 0,
     bugWidth: 60,
     bugHight: 70,
+    isActiveGame: true
 }
 
 function startGame(e) {
@@ -49,24 +50,16 @@ function startGame(e) {
 function game(timestamp) {
     let wizard = document.querySelector('.wizard');
 
-    let fireBalls = document.querySelectorAll('.fire-ball');
-    fireBalls.forEach(fireBall => {
-        let fireBallX = parseInt(fireBall.style.left);
-        fireBall.style.left = (fireBallX + gameSettings.fireBallSpeed) + 'px';
-
-        if (fireBallX + fireBall.offsetWidth >= gameAreaElement.offsetWidth) {
-            fireBall.remove();
-        }
-    });
-
+    // Spawn bugs
     if (timestamp - scene.lastBugSpawned >= gameSettings.bugSpawnInterval) {
         bugSpawn();
         scene.lastBugSpawned = timestamp
     }
 
+    // Render bugs
     let bugs = document.querySelectorAll('.bug');
     bugs.forEach(bug => {
-        bug.x -= gameSettings.movementSpeed;
+        bug.x -= gameSettings.movementSpeed * 2;
         bug.style.left = bug.x + 'px';
 
         if (bug.x + bug.offsetWidth <= 0) {
@@ -74,11 +67,20 @@ function game(timestamp) {
         }
     });
 
+    // Detect collision wizard with bugs
+    bugs.forEach(bug => {
+        if (detectCollision(wizard, bug)) {
+            gameOver();
+        }
+    });
+
+    // Spawn clouds
     if (timestamp - scene.lastCloudSpawned >= gameSettings.cloudSpawnInterval + 20000 * Math.random()) {
         cloudSpawn();
         scene.lastCloudSpawned = timestamp;
     }
 
+    // Render clouds
     let clouds = document.querySelectorAll('.cloud');
     clouds.forEach(cloud => {
         cloud.x -= gameSettings.movementSpeed;
@@ -89,28 +91,34 @@ function game(timestamp) {
         }
     });
 
+    // Add movement
+    if (keys.ArrowUp) {
+        player.y = Math.max(player.y - gameSettings.movementSpeed * 1.3, 0);
+    }
+
+    if (keys.ArrowDown) {
+        player.y = Math.min(player.y + gameSettings.movementSpeed * 1.3, (gameAreaElement.offsetHeight - player.wizardHight));
+    }
+
+    if (keys.ArrowLeft) {
+        player.x = Math.max(player.x - gameSettings.movementSpeed * 1.3, 0);
+    }
+
+    if (keys.ArrowRight) {
+        player.x = Math.min(player.x + gameSettings.movementSpeed * 1.3, (gameAreaElement.offsetWidth - player.wizardWight));
+    }
+
+    // Add gravity
     let isInAir = (player.y + player.wizardHight) <= gameAreaElement.offsetHeight;
 
     if (isInAir) {
         player.y += gameSettings.fallingSpeed;
     }
 
-    if (keys.ArrowUp) {
-        player.y = Math.max(player.y - gameSettings.movementSpeed, 0);
-    }
+    wizard.style.top = player.y + 'px';
+    wizard.style.left = player.x + 'px';
 
-    if (keys.ArrowDown) {
-        player.y = Math.min(player.y + gameSettings.movementSpeed, (gameAreaElement.offsetHeight - player.wizardHight));
-    }
-
-    if (keys.ArrowLeft) {
-        player.x = Math.max(player.x - gameSettings.movementSpeed, 0);
-    }
-
-    if (keys.ArrowRight) {
-        player.x = Math.min(player.x + gameSettings.movementSpeed, (gameAreaElement.offsetWidth - player.wizardWight));
-    }
-
+    // Shoot fire ball
     if (keys.Space && timestamp - player.lastFireBallShot >= gameSettings.fireBallInterval) {
         if (player.x < gameAreaElement.offsetWidth - player.wizardWight - player.fireBallWight) {
 
@@ -122,13 +130,23 @@ function game(timestamp) {
         wizard.classList.remove('wizard-fire');
     }
 
-    wizard.style.top = player.y + 'px';
-    wizard.style.left = player.x + 'px';
+    // Render fire balls
+    let fireBalls = document.querySelectorAll('.fire-ball');
+    fireBalls.forEach(fireBall => {
+        let fireBallX = parseInt(fireBall.style.left);
+        fireBall.style.left = (fireBallX + gameSettings.fireBallSpeed) + 'px';
+
+        if (fireBallX + fireBall.offsetWidth >= gameAreaElement.offsetWidth) {
+            fireBall.remove();
+        }
+    });
 
     scene.score++;
     gamePointsElement.textContent = scene.score;
 
-    window.requestAnimationFrame(game);
+    if (scene.isActiveGame) {
+        window.requestAnimationFrame(game);
+    }
 }
 
 function bugSpawn() {
@@ -159,6 +177,21 @@ function shootFireBall(player) {
     fireBall.style.left = (player.x + player.wizardWight) + 'px';
 
     gameAreaElement.appendChild(fireBall);
+}
+
+function detectCollision(firstElement, secondElement) {
+    let firstRect = firstElement.getBoundingClientRect();
+    let secondRect = secondElement.getBoundingClientRect();
+
+    return !(firstRect.top > secondRect.bottom ||
+        firstRect.bottom < secondRect.top ||
+        firstRect.right < secondRect.left ||
+        firstRect.left > secondRect.right);
+}
+
+function gameOver() {
+    scene.isActiveGame = false;
+    gameOverElement.classList.remove('hide');
 }
 
 function onKeyDown(e) {
