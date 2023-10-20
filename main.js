@@ -23,11 +23,15 @@ const gameSettings = {
     fireBallSpeed: 3,
     fireBallInterval: 1000,
     cloudSpawnInterval: 3000,
+    bugSpawnInterval: 3000,
 };
 const scene = {
     score: 0,
     lastCloudSpawned: 0,
     cloudWidth: 200,
+    lastBugSpawned: 0,
+    bugWidth: 60,
+    bugHight: 70,
 }
 
 function startGame(e) {
@@ -39,8 +43,6 @@ function startGame(e) {
     wizard.style.left = player.x + 'px';
     gameAreaElement.appendChild(wizard);
 
-    let bug = document.createElement('div');
-    bug.classList.add('bug');
     window.requestAnimationFrame(game);
 }
 
@@ -57,6 +59,11 @@ function game(timestamp) {
         }
     });
 
+    if (timestamp - scene.lastBugSpawned >= gameSettings.bugSpawnInterval) {
+        bugSpawn();
+        scene.lastBugSpawned = timestamp
+    }
+
     if (timestamp - scene.lastCloudSpawned >= gameSettings.cloudSpawnInterval + 20000 * Math.random()) {
         cloudSpawn();
         scene.lastCloudSpawned = timestamp;
@@ -66,6 +73,10 @@ function game(timestamp) {
     clouds.forEach(cloud => {
         cloud.x -= gameSettings.movementSpeed;
         cloud.style.left = cloud.x + 'px';
+
+        if (cloud.x + cloud.offsetWidth <= 0) {
+            cloud.remove();
+        }
     });
 
     let isInAir = (player.y + player.wizardHight) <= gameAreaElement.offsetHeight;
@@ -92,6 +103,7 @@ function game(timestamp) {
 
     if (keys.Space && timestamp - player.lastFireBallShot >= gameSettings.fireBallInterval) {
         if (player.x < gameAreaElement.offsetWidth - player.wizardWight - player.fireBallWight) {
+
             player.lastFireBallShot = timestamp
             wizard.classList.add('wizard-fire');
             shootFireBall(player);
@@ -102,11 +114,21 @@ function game(timestamp) {
 
     wizard.style.top = player.y + 'px';
     wizard.style.left = player.x + 'px';
-    
+
     scene.score++;
     gamePointsElement.textContent = scene.score;
 
     window.requestAnimationFrame(game);
+}
+
+function bugSpawn() {
+    let bug = document.createElement('div');
+    bug.classList.add('bug');
+    bug.x = gameAreaElement.offsetWidth - scene.bugWidth;
+    bug.style.left = bug.x + 'px';
+    bug.style.top = (gameAreaElement.offsetHeight - scene.bugHight) * Math.random() + 'px';
+
+    gameAreaElement.appendChild(bug);
 }
 
 function cloudSpawn() {

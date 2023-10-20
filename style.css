@@ -76,7 +76,13 @@ body {
     background-size: cover;
 }
 
-.bug {}
+.bug {
+    position: absolute;
+    width: 60px;
+    height: 70px;
+    background-image: url(/images/bug.png);
+    background-size: cover;
+}
 
 .hide {
     display: none;
