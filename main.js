@@ -3,6 +3,7 @@ const gameAreaElement = document.querySelector('.game-area');
 const gameOverElement = document.querySelector('.game-over');
 const gameScoreElement = document.querySelector('.game-score');
 const gamePointsElement = document.querySelector('.points');
+const playerHealthElement = document.querySelector('.health');
 
 gameStartElement.addEventListener('click', startGame);
 document.addEventListener('keydown', onKeyDown);
@@ -19,6 +20,7 @@ const player = {
 };
 const gameSettings = {
     movementSpeed: 2,
+    bugSpeed: 2,
     fallingSpeed: 0.5,
     fireBallSpeed: 3,
     fireBallInterval: 1000,
@@ -27,6 +29,7 @@ const gameSettings = {
 };
 const scene = {
     score: 0,
+    health: 3,
     lastCloudSpawned: 0,
     cloudWidth: 200,
     lastBugSpawned: 0,
@@ -35,9 +38,11 @@ const scene = {
     isActiveGame: true
 }
 
+// Start the game
 function startGame(e) {
     gameStartElement.classList.add('hide');
 
+    // Render wizard
     let wizard = document.createElement('div');
     wizard.classList.add('wizard');
     wizard.style.top = player.y + 'px';
@@ -47,13 +52,15 @@ function startGame(e) {
     window.requestAnimationFrame(game);
 }
 
+// Game logic
 function game(timestamp) {
     let wizard = document.querySelector('.wizard');
 
     // Spawn bugs
     if (timestamp - scene.lastBugSpawned >= gameSettings.bugSpawnInterval) {
         bugSpawn();
-        scene.lastBugSpawned = timestamp
+        scene.lastBugSpawned = timestamp;
+        gameSettings.movementSpeed += 0.3;
     }
 
     // Render bugs
@@ -64,6 +71,7 @@ function game(timestamp) {
 
         if (bug.x + bug.offsetWidth <= 0) {
             bug.remove();
+            scene.score -= 500;
         }
     });
 
@@ -137,17 +145,23 @@ function game(timestamp) {
     // Detect collision
     bugs.forEach(bug => {
         if (detectCollision(wizard, bug)) {
-            gameOver();
+            bug.remove();
+            scene.health--;
+            playerHealthElement.textContent = scene.health;
+            if (!scene.health) {
+                gameOver();
+            }
         }
 
         fireBalls.forEach(fireBall => {
             if (detectCollision(fireBall, bug)) {
                 bug.remove();
                 fireBall.remove();
+                scene.score += 1000;
             }
         });
     });
-
+    
     scene.score++;
     gamePointsElement.textContent = scene.score;
 
@@ -199,6 +213,10 @@ function detectCollision(firstElement, secondElement) {
 function gameOver() {
     scene.isActiveGame = false;
     gameOverElement.classList.remove('hide');
+
+    gameOverElement.addEventListener('click', () => {
+        location.reload();
+    });
 }
 
 function onKeyDown(e) {
